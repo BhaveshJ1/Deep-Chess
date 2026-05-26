@@ -11,8 +11,21 @@ using namespace std;
 string solve(int n, vector<long long> a) {
     // TODO: Fill this function.
     // Return one of: "Player 1" or "Player 2" or "Draw"
-
-    return "";
+    vector<long long> u(n+1,0);
+    for(int i=n-1;i>-1;i--){
+        if(i==n-1){
+            u[i]=a[i];
+        }
+        else{
+            long long w1,w2;
+            w1=a[i]-u[i+1];
+            w2=a[i]+a[i+1]-u[i+2];
+            u[i]=max(w1,w2);
+        }
+    }
+    if(u[0]>0){return "Player 1";}
+    if(u[0]<0){return "Player 2";}
+    return "Draw";
 }
 
 static string trim(const string &s) {
