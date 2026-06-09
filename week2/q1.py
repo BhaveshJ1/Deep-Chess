@@ -74,41 +74,112 @@ class History:
         return board
 
     def is_win(self):
+        board=self.get_board()
+        for i in range(3):
+            if board[3 * i] == board[3 * i + 1] == board[3 * i + 2] != '0':
+                return board[3*i]
+
+            if board[i] == board[i + 3] == board[i + 6] != '0':
+                return board[i]
+
+        if board[0] == board[4] == board[8] != '0':
+            return board[4]
+
+        if board[2] == board[4] == board[6] != '0':
+            return board[4]
+        return 0
         # check if the board position is a win for either players
         # Feel free to implement this in anyway if needed
         pass
 
     def is_draw(self):
+        if self.is_win():
+            return False
+        return True
         # check if the board position is a draw
         # Feel free to implement this in anyway if needed
         pass
 
     def get_valid_actions(self):
+        actions=[]
+        board=self.get_board()
+        for i in range(len(board)):
+            if board[i]=='0':
+                actions.append(i)
+        return actions
         # get the empty squares from the board
         # Feel free to implement this in anyway if needed
         pass
 
     def is_terminal_history(self):
+        if len(self.history)==9:
+            return True
+        if self.is_win():
+            return True
+        return False
         # check if the history is a terminal history
         # Feel free to implement this in anyway if needed
         pass
 
     def get_utility_given_terminal_history(self):
+        
         # Feel free to implement this in anyway if needed
         pass
 
     def update_history(self, action):
+        new_history=copy.deepcopy(self.history)
+        new_history.append(action)
+        next_history=History(new_history)
+        return next_history
         # In case you need to create a deepcopy and update the history obj to get the next history object.
         # Feel free to implement this in anyway if needed
         pass
-
+a=History()
 
 def backward_induction(history_obj):
     """
-    :param history_obj: Histroy class object
+    :param history_obj: History class object
     :return: best achievable utility (float) for th current history_obj
     """
+
     global strategy_dict_x, strategy_dict_o
+    if history_obj.is_terminal_history():
+        if history_obj.is_win()=='x':
+            return 1-0.01*len(history_obj.history)
+        if history_obj.is_win()=='o':
+            return -(1-0.01*len(history_obj.history))
+            # if history_obj.current_player()=='x':
+            #     strategy_dict_x[''.join(map(str,history_obj.history))]={str(i):0 for i in range(9)}
+            #     strategy_dict_x[''.join(map(str,history_obj.history))][history_obj.history[-1]]=1
+            return history_obj.is_win()
+        if history_obj.is_draw():
+            return 0
+    if history_obj.current_player()=='x':
+        bu=-math.inf
+        strategy_dict_x["".join(map(str,history_obj.history))]={str(i):0 for i in range(9)}
+        actions=history_obj.get_valid_actions()
+        bi=actions[0]
+        for i in actions:
+            afteraction=history_obj.update_history(i)
+            u=backward_induction(afteraction)
+            if u>bu:
+                bu=u
+                bi=i
+        strategy_dict_x["".join(map(str,history_obj.history))][str(bi)]=1
+        return bu
+    if history_obj.current_player()=='o':
+        bu=math.inf
+        strategy_dict_o["".join(map(str,history_obj.history))]={str(i):0 for i in range(9)}
+        actions=history_obj.get_valid_actions()
+        bi=actions[0]
+        for i in actions:
+            afteraction=history_obj.update_history(i)
+            u=backward_induction(afteraction)
+            if u<bu:
+                bu=u
+                bi=i
+        strategy_dict_o["".join(map(str,history_obj.history))][str(bi)]=1
+        return bu
     # TODO implement
     # (1) Implement backward induction for tictactoe
     # (2) Update the global variables strategy_dict_x or strategy_dict_o which are a mapping from histories to
